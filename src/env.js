@@ -15,7 +15,7 @@ const device = require('./managers/device').getCurrentDevice();
  *
  * SERVER_ROOT
  * ├── src
- * ├── home     || ~/.canvas        || Canvas/Server
+ * ├── home     || ~/.canvas        || Canvas/Server ||
  * ├── data     || ~/.canvas/data   || Canvas/Server/data
  * ├── config   || ~/.canvas/config || Canvas/Server/config
  * ├── var      || ~/.canvas/var    || Canvas/Server/var
@@ -114,6 +114,10 @@ module.exports = env;
 /**
  * Utils
  */
+
+function isPortable() {
+    return fs.existsSync(path.join(SERVER_HOME, '.ignore'));
+}
 
 function generateDotenvFile(iniVars, filePath) {
     let iniContent = '';
