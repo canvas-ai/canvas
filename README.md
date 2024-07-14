@@ -8,7 +8,7 @@
 <br />
 
 <h1 align="center">Canvas</h1>
-<h2 align="center">Context layer on top of your unstructured universe!</h2>
+<h2 align="center">Contextualize your unstructured universe!</h2>
 
 <br />
 
@@ -178,7 +178,7 @@ Moved to a separate repo:
   
 Manages your entire (not exclusively digital) universe. Server hosts your global context tree, stores all layers and indexes all your Apps, Roles, Utils, Dotfiles and data. It is also a proxy between your data backends and your client, exporting your contextualized OS environment configuration through various transports(REST API, socket.io, IPC, webdav).
 
-**Canvas client**  
+**Canvas clients**  
 Client repositories:
 - https://github.com/canvas-ai/canvas-electron (default desktop client)
 - https://github.com/canvas-ai/canvas-shell
@@ -198,7 +198,8 @@ Some of the technologies used in no particular order:
 - [cacache](https://www.npmjs.com/package/cacache) - Integral part of storeD for caching remote data locally
 - [vLLM](https://github.com/vllm-project/vllm) - Currently evaluating as the LLM backend
 - [electron](https://www.electronjs.org/) - Well ..it should be easy enough to migrate to a more lightweight solution later on
-- [AI/ML links](app/services/neurald/README.md)
+- [lancedb](https://github.com/lancedb/lancedb)
+
 
 <br />
 
