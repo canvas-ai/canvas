@@ -1,5 +1,3 @@
-# canvas
-Canvas desktop overlay
 <br />
 <br />
 
@@ -65,6 +63,8 @@ yarn dev
 # Make sure you pin both to your taskbar
 
 ```
+
+- Project (this particular repo) is using git subtrees, ensure you run ./scripts/update-subtrees.sh before running it
 
 ## Basic Concepts | What is Canvas
 
