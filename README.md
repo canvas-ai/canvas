@@ -18,7 +18,8 @@ This project was started a long^looong time ago (originally named "Workspaces") 
 
 ## Note
 
-We are just starting to work on the Electron UI part (this repo). More information about the progress at [https://github.com/orgs/canvas-ai/projects/2](https://github.com/orgs/canvas-ai/projects/2)
+- We are just starting to work on the Electron UI part (this repo). More information about the progress at [https://github.com/orgs/canvas-ai/projects/2](https://github.com/orgs/canvas-ai/projects/2)
+- Project (this particular repo) is using git subtrees, ensure you run ./scripts/update-subtrees.sh before running it
 
 **To run this project without a GUI (server+cli+browser)**  
 
@@ -63,8 +64,6 @@ yarn dev
 # Make sure you pin both to your taskbar
 
 ```
-
-- Project (this particular repo) is using git subtrees, ensure you run ./scripts/update-subtrees.sh before running it
 
 ## Basic Concepts | What is Canvas
 
