@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "dockerode-compose": "^1.4.0"
+  }
+}
