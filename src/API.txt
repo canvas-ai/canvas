@@ -1,0 +1,40 @@
+canvas
+    [service]
+    - start
+        - init services
+            - db
+            - 
+        - init managers
+            - context
+            - session
+        - init transports
+    - stop
+    - restart
+    - status
+
+    # Main Canvas class(main.js) configures global modules
+    # - config
+    # - logger
+    # - db
+    # All 3 passed to other modules in a DI pattern
+
+
+    sessions
+    workspaces
+    contexts
+
+
+    [apps]
+
+    [roles]
+
+    [compute]
+    - addComputeBackend
+    -
+
+    [data]
+    - addDataSource
+    - listDataSources
+    - removeDataSource
+
+

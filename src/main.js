@@ -1,32 +1,23 @@
 /**
- * Canvas main()
+ * Canvas
  */
-
-// Environment variables
-const {
-    SERVER,
-    PID,
-    IPC,
-} = require('./env.js');
 
 // Utils
 const path = require('path');
 const debug = require('debug')('canvas-main');
 const EventEmitter = require('eventemitter2');
+const winston = require('winston');
 const Config = require('./utils/config/index.js');
-const log = require('./utils/log/index.js');
 
 // Core services
-const EventD = require('./services/eventd/index.js');
 const SynapsDB = require('./services/synapsdb/index.js');
-const NeuralD = require('./services/neurald/index.js');
 const StoreD = require('./services/stored/index.js');
 
 // Manager classes
-const ServiceManager = require('./managers/service/index.js');
 const RoleManager = require('./managers/role/index.js');
 const SessionManager = require('./managers/session/index.js');
 const ContextManager = require('./managers/context/index.js');
+const DeviceManager = require('./managers/device/index.js');
 
 // Transports
 const TransportHttp = require('./transports/http');
@@ -34,10 +25,6 @@ const TransportHttp = require('./transports/http');
 // App constants
 const MAX_SESSIONS = 32; // 2^5
 const MAX_CONTEXTS_PER_SESSION = 32; // 2^5
-const CONTEXT_AUTOCREATE_LAYERS = true;
-const CONTEXT_URL_PROTO = 'universe';
-const CONTEXT_URL_BASE = '/';
-const CONTEXT_URL_BASE_ID = 'universe';
 
 
 /**
@@ -46,15 +33,41 @@ const CONTEXT_URL_BASE_ID = 'universe';
 
 class Canvas extends EventEmitter {
 
-    #status;
-    #isMaster;
+    #mode;
+    #user = {};
+    #server = {};
+    #device;
+    #status = 'stopped'; // stopped, initialized, starting, running, stopping;
 
-    constructor(options = {
-        sessionEnabled: true,
-        enableUserRoles: true,
-    }) {
-
+    constructor(options = {}) {
         debug('Initializing Canvas Server');
+
+        /**
+         * Lets do some basic options validation
+         */
+
+        if (!options.mode) {
+            throw new Error('Canvas Server mode not specified');
+        }
+
+        if (!options.paths.server ||
+            !options.paths.server.config ||
+            !options.paths.server.data ||
+            !options.paths.server.roles ||
+            !options.paths.server.var) {
+            throw new Error('Canvas Server paths not specified');
+        }
+
+        if (options.mode === 'full' &&
+            !options.paths.user ||
+            !options.paths.user.config ||
+            !options.paths.user.data ||
+            !options.paths.user.cache ||
+            !options.paths.user.db ||
+            !options.paths.user.workspaces) {
+            throw new Error('Canvas Server user paths not specified');
+        }
+
 
         /**
          * Utils
@@ -62,48 +75,80 @@ class Canvas extends EventEmitter {
 
         super(); // EventEmitter2
 
+        this.#mode = options.mode;
+        this.#server.paths = options.paths.server;
+        this.#user.paths = options.paths.user;
+        this.#device = DeviceManager.getCurrentDevice();
+        this.app = options.app;
+
         this.config = Config({
-            serverConfigDir: SERVER.paths.config,
-            userConfigDir: SERVER.paths.config,
+            serverConfigDir: this.#server.paths.config,
+            userConfigDir: (this.#mode === 'full') ? this.#user.paths.config : null,
             configPriority: 'server',
             versioning: false,
         });
 
-        this.logger = log('canvas-server', {
-            appName: SERVER.name,
-            logLevel: process.env.LOG_LEVEL || 'debug',
-            logPath: path.join(SERVER.paths.var, 'log'),
+        let logFile = path.join(this.#server.paths.var, 'canvas-server.log');
+        debug('Log file:', logFile);
+        this.logger = winston.createLogger({
+            level: process.env['LOG_LEVEL'] || 'info',
+            format: winston.format.simple(),
+            transports: [
+                new winston.transports.File({ filename: logFile }),
+                new winston.transports.Console(),
+            ],
         });
 
+
         /**
-         * Runtime
+         * Runtime environment
          */
 
-        this.sessionEnabled = options.sessionEnabled;
-        this.enableUserRoles = options.enableUserRoles;
+        this.PID = process.env['pid'];          // Current App instance PID
+        this.IPC = process.env['ipc'];          // Shared IPC socket
+        this.transports = new Map();            // Transport instances
+
+        // Bling-bling for the literature lovers
+        this.logger.info(`Starting ${this.app.name} v${this.app.version}`);
+        this.logger.info(`Server mode: ${this.#mode}`);
+
+        debug('Server paths:', this.#server.paths);
+        if (this.#mode === 'full') {
+            debug('User paths:', this.#user.paths);
+        }
+
+
+        /**
+         * Canvas Server RoleManager (minimal mode)
+         */
+
+        this.roleManager = new RoleManager({
+            rolesPath: this.#server.paths.roles,
+        });
+
+        if (this.#mode !== 'full') {
+            this.logger.info('Canvas Server initialized');
+            this.#status = 'initialized';
+            return;
+        }
+
 
         /**
          * Core services
          */
 
         this.db = new SynapsDB({
-            path: path.join(SERVER.paths.home, 'db'),
-            backupPath: path.join(SERVER.paths.home, 'db', 'backup'),
+            path: path.join(this.#user.paths.db),
+            backupPath: path.join(this.#user.paths.db, 'backup'),
             backupOnOpen: true,
             backupOnClose: false,
             compression: true,
         });
 
-        this.neurald = new NeuralD({
-            db: this.db.createDataset('neurald'),
-            config: this.config,
-            logger: this.logger,
-        });
-
         this.stored = new StoreD({
             paths: {
-                data: SERVER.paths.data,
-                cache: path.join(SERVER.paths.var, 'cache'),
+                data: this.#user.paths.data,
+                cache: this.#user.paths.cache
             },
             cachePolicy: 'pull-through',
         });
@@ -113,103 +158,117 @@ class Canvas extends EventEmitter {
          * Managers
          */
 
+        this.deviceManager = new DeviceManager({
+            db: this.db,
+        });
+
         this.contextManager = new ContextManager({
             db: this.db,
         });
 
+        // TODO: Refactor
         this.sessionManager = new SessionManager({
-            sessionStore: (this.sessionEnabled) ?
-                this.db.createDataset('session') : new Map(),
-            // TODO: Refactor/review
+            sessionStore: this.db.createDataset('session'),
             contextManager: this.contextManager,
             maxSessions: MAX_SESSIONS,
             maxContextsPerSession: MAX_CONTEXTS_PER_SESSION,
         });
 
-
-        /**
-         * Transports
-         */
-
-        this.transports = new Map();
-
-        // Static variables
-        this.PID = PID;          // Current App instance PID
-        this.IPC = IPC;          // Shared IPC socket
-
-        // App State
-        this.#isMaster = true;
-        this.#status = 'stopped';
+        this.logger.info('Canvas Server initialized');
+        this.#status = 'initialized';
     }
 
     // Getters
-    static get appName() { return SERVER.appName; }
-    static get version() { return SERVER.version; }
-    static get description() { return SERVER.description; }
-    static get license() { return SERVER.license; }
-    static get paths() { return SERVER.paths; }
+    get appName() { return this.app.name; }
+    get version() { return this.app.version; }
+    get description() { return this.app.description; }
+    get license() { return this.app.license; }
+    get paths() {
+        return {
+            server: this.#server.paths,
+            user: this.#user.paths,
+        };
+    }
+    get mode() { return this.#mode; }
     get pid() { return this.PID; }
     get ipc() { return this.IPC; }
-    get status() { return this.#status; }
-    get isMaster() { return this.#isMaster; }
+    get currentDevice() { return this.#device; }
 
 
     /**
      * Canvas service controls
      */
 
+    async start(url, options) {
+        if (this.#status === 'running') { throw new Error('Canvas Server already running'); }
 
-    async start(url, options = {
-        // Maybe we should support starting the whole canvas-server with a locked context path
-        // but lets be KISS-y for now
-    }) {
-        if (this.#status == 'running' && this.#isMaster) {throw new Error('Canvas Server already running');}
         this.#status = 'starting';
         this.emit('starting');
+
         try {
             this.setupProcessEventListeners();
-
-            // Start the default session (if enabled, maybe we'll remove this)
-            if (this.sessionEnabled) { this.sessionManager.createSession('default'); }
-
-            await this.initializeServices();
+            await this.roleManager.start();
             await this.initializeTransports();
-            await this.initializeRoles();
+
+            if (this.#mode === 'full') {
+                this.sessionManager.createSession('default');
+                await this.initializeServices();
+                await this.initializeRoles();
+            }
         } catch (error) {
-            console.error('Error during Canvas Server startup:', error);
+            this.logger.error('Error during Canvas Server startup:', error);
             process.exit(1);
         }
 
         this.#status = 'running';
         this.emit('running');
+        this.logger.info('Canvas Server started successfully');
         return true;
     }
 
-    async shutdown(exit = true) {
+    async stop(exit = true) {
         debug(exit ? 'Shutting down Canvas Server...' : 'Shutting down Canvas Server for restart');
+        this.logger.info(exit ? 'Shutting down Canvas Server...' : 'Shutting down Canvas Server for restart');
+
         this.emit('before-shutdown');
         this.#status = 'stopping';
         try {
-            if (this.sessionEnabled) { await this.sessionManager.saveSessions(); }
+            await this.sessionManager.saveSessions();
             await this.shutdownRoles();
             await this.shutdownTransports();
             await this.shutdownServices();
-            console.log('Graceful shutdown completed successfully.');
-            if (exit) {process.exit(0);}
+            this.logger.info('Graceful shutdown completed successfully.');
+            if (exit) { process.exit(0); }
         } catch (error) {
-            console.error('Error during shutdown:', error);
+            this.logger.error('Error during shutdown:', error);
             process.exit(1);
         }
     }
 
     async restart() {
         debug('Restarting Canvas Server');
+        this.logger.info('Restarting Canvas Server');
         this.emit('restart');
-        await this.shutdown(false);
+        await this.stop(false);
         await this.start();
     }
 
-    stats() { return []; }
+    async status() {
+        return {
+            status: this.#status,
+            pid: this.PID,
+            ipc: this.IPC,
+            device: this.#device,
+            mode: this.#mode,
+            server: {
+                appName: this.app.name,
+                version: this.app.version,
+                description: this.app.description,
+                license: this.app.license,
+            },
+            sessions: this.listActiveSessions(),
+        };
+    }
 
 
     /**
@@ -243,9 +302,6 @@ class Canvas extends EventEmitter {
         return this.sessionManager.deleteSession(id);
     }
 
-    // saveSession(id) { return this.sessionManager.saveSession(id) }
-    // saveSessions() { return this.sessionManager.saveSessions() }
-
 
     /**
      * Services
@@ -258,7 +314,7 @@ class Canvas extends EventEmitter {
 
     async shutdownServices() {
         debug('Shutting down services');
-        await this.db.stop()
+        await this.db.stop();
         return true;
     }
 
@@ -267,6 +323,7 @@ class Canvas extends EventEmitter {
      * Transports
      */
 
+    // TODO: Refactor / remove
     async initializeTransports() {
         debug('Initializing transports');
         // Load configuration options for transports
@@ -359,7 +416,7 @@ class Canvas extends EventEmitter {
 
         process.on('uncaughtException', (error) => {
             console.error(error);
-            this.shutdown().then(() => process.exit(1));
+            this.stop().then(() => process.exit(1));
         });
 
         process.on('unhandledRejection', (reason, promise) => {
@@ -374,20 +431,20 @@ class Canvas extends EventEmitter {
 
         process.on('SIGINT', async (signal) => {
             console.log(`Received ${signal}, gracefully shutting down`);
-            await this.shutdown();
+            await this.stop();
             process.exit(0);
         });
 
         process.on('SIGTERM', async (signal) => {
             console.log(`Received ${signal}, gracefully shutting down`);
-            await this.shutdown();
+            await this.stop();
             process.exit(0);
         });
 
         process.on('beforeExit', async (code) => {
             if (code !== 0) {return;}
             debug('Process beforeExit: ', code);
-            await this.shutdown();
+            await this.stop();
         });
 
         process.on('exit', (code) => {

@@ -75,6 +75,9 @@ class SynapsDB extends EE {
         returnMetaOnly = false,
     ) { debug('find() not implemented yet!'); return false; }
 
+    // mergeLayer(layerId, layerArray) < better name!
+    // renameLayer(layerId, newName) // api layers/rename/:id/:name?
+
 
     /**
      * Document interface

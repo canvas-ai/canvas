@@ -1,4 +1,5 @@
 class SchemaRegistry {
+
     constructor() {
         this.schemas = {
             default: require('./Document'),

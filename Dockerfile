@@ -4,26 +4,30 @@ FROM node:20
 # Working directory
 WORKDIR /opt
 
-# Install git
-RUN apt-get update && apt-get install -y git curl && apt-get clean
+# Install basic dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends git curl \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Clone the repository (dev for now as its more up-to-date)
-RUN git clone --branch dev https://github.com/idncsk/canvas-server canvas-server
+# Clone the repository
+RUN git clone --branch main https://github.com/canvas-ai/canvas-server canvas-server
 
-# Install PM2 globally
-#RUN npm install -g pm2
-
-# Lets switch the workdir to our beloved src
-WORKDIR /opt/canvas-server/src
+# Lets switch the workdir
+WORKDIR /opt/canvas-server
 
 # Install application dependencies
-RUN npm install
+RUN yarn install
+
+# Accept CONFIG_DIR as a build argument
+ARG CONFIG_DIR=./config
+
+# Copy default server configuration tu support portable deployments
+COPY ${CONFIG_DIR} /opt/canvas-server/config
 
 # Expose port 8000
 EXPOSE 8000
 
-# Start the application using PM2
-#CMD ["pm2-runtime", "start", "main.js"]
-
 # Start the application using npm/node
-CMD ["npm", "run", "start"]
+CMD ["yarn", "start"]
+
+# ENTRYPOINT [ "/opt/canvas-server/bin/start-server.sh" ]
+
