@@ -12,44 +12,49 @@
 
 <br />
 
-## Foreword / Beware!  
+## Foreword / Beware!
 
 This project was started a long^looong time ago (originally named "Workspaces") and was my first-ever Node.js + Electron endeavour. Some code snippets you may stumble upon date back to the dark ages of my JS knowledge hence may insult, even hurt more experienced programmers. In addition, 2020 to 2022 I took on a role as a freelance DevOps engineer for a major retail bank, which meant putting everything else besides the bare necessities on hold(people who suffered through a multimillion $$$ project behind schedule in this industry may know and most probably still vividly recall the pain). That being said, if you have any questions or need assistance with the setup, please do not hesitate to contact me directly. I will be more than happy to help! For the time being, please follow the development branch.
 
 ## Note
 
-- We are just starting to work on the Electron UI part (this repo). More information about the progress at [https://github.com/orgs/canvas-ai/projects/2](https://github.com/orgs/canvas-ai/projects/2)
-- Project (this particular repo) is using git subtrees, ensure you run ./scripts/update-subtrees.sh before running it
+- More information about the dev progress at [https://github.com/orgs/canvas-ai/projects/2](https://github.com/orgs/canvas-ai/projects/2)
+- Project (this particular repo) is using **git subtrees**, ensure you run `./scripts/update-subtrees.sh` before running it
 
-**To run this project without a GUI (server+cli+browser)**  
+**To run this project without a GUI (server+cli+browser)**
 
 ```bash
-# Canvas Server (can be run remotely, Dockerfile tbd)
-mkdir -p ~/Canvas
-git clone https://github.com/canvas-ai/canvas-server.git ~/Canvas/Server
-cd ~/Canvas/Server/main
-npm install
-npm run start
+# Canvas Server
+git clone https://github.com/canvas-ai/canvas-server.git /path/to/canvas-server
+cd /path/to/canvas-server
+# Run locally
+# You can install dependencies automatically via ./scripts/install-ubuntu.sh
+npm install # or yarn install
+npm run start # or yarn start
+# Run in docker
+docker-compose build --force-rm --no-cache --pull
+docker-compose up --detach
 
 # Canvas cli client
-git clone https://github.com/canvas-ai/canvas-shell.git ~/Canvas/Shell
+git clone https://github.com/canvas-ai/canvas-shell.git /path/to/canvas-shell
+# Create configuration dir
 mkdir -p ~/.canvas/config
 echo '{
     "protocol": "http",
     "host": "127.0.0.1",
-    "port": "8001",
+    "port": "8000",
     "baseUrl": "/rest/v1",
     "auth": {
         "token": "canvas-rest-api"
     }
 }' > ~/.canvas/config/transport.rest.json
-echo ". ~/Canvas/Shell/context.sh" >> ~/.bashrc
+echo ". /path/to/canvas-shell/context.sh" >> ~/.bashrc
 bash
 context connect # or context disconnect or canvas_connect or canvas_disconnect
 
 # Browser extension
-git clone https://github.com/canvas-ai/canvas-browser-extensions.git ~/Canvas/Extensions
-cd ~/Canvas/Extensions
+git clone https://github.com/canvas-ai/canvas-browser-extensions.git /path/to/canvas-extensions/browser
+cd /path/to/canvas-extensions/browser
 yarn install
 yarn dev
 # Chrome
@@ -59,7 +64,7 @@ yarn dev
 # Firefox
 # about:debugging#/runtime/this-firefox
 # > Load temporary addon
-# > Navigate to packages 
+# > Navigate to packages
 
 # Make sure you pin both to your taskbar
 
@@ -67,9 +72,9 @@ yarn dev
 
 ## Basic Concepts | What is Canvas
 
-Canvas is a cross-platform desktop overlay to help organize my work / workflows and **data** into separate "contexts".
+Canvas is a cross-platform desktop overlay to help organize work / workflows, events and **data** into separate "contexts".
 
-Contexts are represented by a tree structure resembling a file-system hierarchy; every tree node represents a separate layer filtering down all unstructured information fighting for my attention on a standard(tm) desktop setup(emails, notifications, chat messages, growing number of random browser tabs and ad-hoc download-extract-test-forget endeavors).  
+Contexts are represented by a tree structure resembling a file-system hierarchy; every tree node represents a separate layer filtering down all unstructured information fighting for your attention on a standard(tm) desktop setup(emails, notifications, chat messages, growing number of random browser tabs and ad-hoc download-extract-test-forget endeavors).
 
 A Canvas context tree is designed to be dynamic, supporting frequent changes to accommodate any structure needed to be productive:
 
@@ -92,8 +97,8 @@ universe://
                 /Materials
                     /Shinnoki
                     /Egger
-                    /.. 
-            /Project docs            
+                    /..
+            /Project docs
                 /Archicad
                 /Sketchup
                 /Twinmotion
@@ -104,7 +109,7 @@ universe://
         /AirBnB
             /Atlas Apartment
             /Fountainhead Apartment
-        /Cu$tomer A 
+        /Cu$tomer A
                 /Dev
                     /JIRA-1234
                     /JIRA-1237
@@ -122,28 +127,28 @@ universe://
                 /2023
             /acme inc
                 /2023
-                    /08        
+                    /08
 ```
 
-Context URL  
-``universe://work/customer-a/reports``  
-will (presumably) return all reports for Customer A,  
+**Context URL**
+``universe://work/customer-a/reports``
+will (presumably) return all reports for Customer A,
 
-``universe://reports``  
-will return all reports indexed("linked") by the bitmap index of the "reports" layer for your entire universe.  
+``universe://reports``
+will return all reports indexed("linked") by the bitmap index of the "reports" layer for your entire universe.
 
-You want to prevent having multiple layers representing the same data. "Reports", "reports_new", "reports2", "customera-reports" should be represented by one layer - fe "reports", leaving the context(layer order) handle the filtering for you.  
+You want to prevent having multiple layers representing the same data. "Reports", "reports_new", "reports2", "customera-reports" should be represented by one layer named "reports", leaving the context(layer order) handle the filtering for you.
 
-This setup enables having the same data accessible through different, ad-hoc "filesystem-like" context paths:  
-``universe://photos/2023/06``  
-``universe://home/inspirations/kitchens``  
-``universe://travel/Spain/2023``  
-``universe://tasks/data-cleanup/2023/09``  
-For the above example, all contexts return (among other data) the same file `IMG_1234.jpg` - a picture of a nice kitchen from an airbnb we stayed at. As a bonus - regardless of where it is stored(the storage part is abstracted away via storeD). Same goes for tabs, notes or any other documents - including the entropy-rich content of my ~/Downloads and ~/Desktop folders.  
+This setup enables having the same data accessible through different, ad-hoc "filesystem-like" context paths:
+``universe://photos/2023/06``
+``universe://home/inspirations/kitchens``
+``universe://travel/Spain/2023``
+``universe://tasks/data-cleanup/2023/09``
+For the above example, all contexts return (among other data) the same file `IMG_1234.jpg` - a picture of a nice kitchen from an airbnb we stayed at. As a bonus - regardless of where it is stored(the storage part is abstracted away via storeD). Same goes for tabs, notes or any other documents - including the entropy-rich content of my ~/Downloads and ~/Desktop folders.
 
 There are 5 layer types:
 
-- **Workspace**: Exportable, **shareable** collection of data sources and layers. By default, you start with an undifferentiated "universe". Workspaces in Canvas can have a primary color assigned. If they do, Canvas will automatically use gradients [of the primary workspace color] for individual data abstractions. 
+- **Workspace**: Exportable, **shareable** collection of data sources and layers. By default, you start with an undifferentiated "universe". Workspaces in Canvas can have a primary color assigned. If they do, Canvas will automatically use gradients [of the primary workspace color] for individual data abstractions.
 
 - **Canvas**: A layer with multiple context, feature and/or filter bitmaps assigned that can optionally store Canvas UI layout and UI applet data. Canvases are the central piece of a lets say unorthodox approach to desktop environments, but more on that later.
 
@@ -152,6 +157,26 @@ There are 5 layer types:
 - **Filter**: Represents a single filter or feature bitmap*; example: `universe://customer_a/:emails/:today`, where :emails represents the "data/abstraction/email" feature bitmap, :today represents the "filter/datetime/today" filter.
 
 - **Label**: A noop layer with no context or feature bitmap links
+
+**Sessions**
+
+- Each session has its own context(one) and a single control interface - meaning - switching your context on a work-phone will automatically switch context on all devices connected to the same session(your work PC for example)
+- Sessions are decoupled from workspaces
+
+**Workspaces**
+
+- `universe://foo/bar/baz` - Base URL **/**, (default) "universe" session
+- `work://work` - Session "work" with a base URL set to **/work** (navigation/data only from the /work subtree)
+- `dxc://work/dxc` - Session "DXC" with a base URL set to **/work/dxc** (navigation/data only from the /work/customerA subtree)
+
+**Contexts**
+
+- A client application can (optionally) submit a client context in the context array, some example contexts are
+  - client/os/linux,
+  - client/user/user1,
+  - client/app/obsidian,
+  - client/network/172.16.2.0%24
+- This is very useful for calculating optimal routes for resources - Retrieving `file123.mp3` while sitting at home may use your home NAS as the primary backend, but use your s3 backend as default while on mobile network sitting on a train on your way to work for example
 
 
 ## Why Canvas you ask
@@ -172,19 +197,21 @@ There are couple of motivating factors for this project:
 
 ## Architecture
 
-**Canvas server**  
-Moved to a separate repo: 
-- https://github.com/canvas-ai/canvas-server  
-  
+**Canvas server**
+Moved to a separate repo:
+- https://github.com/canvas-ai/canvas-server
+
 Manages your entire (not exclusively digital) universe. Server hosts your global context tree, stores all layers and indexes all your Apps, Roles, Utils, Dotfiles and data. It is also a proxy between your data backends and your client, exporting your contextualized OS environment configuration through various transports(REST API, socket.io, IPC, webdav).
 
-**Canvas clients**  
+**Canvas clients**
 Client repositories:
 - https://github.com/canvas-ai/canvas-electron (default desktop client)
 - https://github.com/canvas-ai/canvas-shell
 - https://github.com/canvas-ai/canvas-browser-extensions
 
 Client runtime [on a linux OS] ensures all configured apps(flatpak), local roles(docker/podman), utils(stored), dotfiles(git) and data(stored) are available on your host system for the context you are currently working in. You can pin a canvas client to a specific workspace(context), for example say your work notebook to `universe://work` and your htpc to `universe://home/living-room`, both with its own (sub-)set of apps, roles, utils, dotfiles and data visibility limited to the pinned context subtree.
+
+
 
 
 Some of the technologies used in no particular order:
@@ -226,7 +253,7 @@ For **portable** use, download and extract nodejs and electron into the canvas/r
 
 ## Configuration paths
 
-Default user home for portable use: `canvas/user`  
+Default user home for portable use: `canvas/user`
 Default user home: `$HOME/.canvas`
 
 Environment variables:
@@ -267,8 +294,8 @@ Thank you!
 
 ## Refs
 
-https://github.com/sindresorhus/awesome-electron  
-https://onaircode.com/css-material-design-frameworks/  
-https://mdbootstrap.com/docs/standard/components  
-https://mui.com/material-ui/  
+https://github.com/sindresorhus/awesome-electron
+https://onaircode.com/css-material-design-frameworks/
+https://mdbootstrap.com/docs/standard/components
+https://mui.com/material-ui/
 
