@@ -3,16 +3,23 @@
 const Docker = require('dockerode');
 const DockerCompose = require('dockerode-compose');
 
+
+// TEST!
 class RoleManager {
     constructor(dockerConfigs) {
         this.dockerBackends = new Map();
         this.roles = new Map();
 
         // Initialize Docker backends
-        dockerConfigs.forEach(config => {
+        /*dockerConfigs.forEach(config => {
             const { name, ...dockerOptions } = config;
             this.dockerBackends.set(name, new Docker(dockerOptions));
-        });
+        });*/
+    }
+
+    async start() {
+        return true;
+        //return Promise.all(Array.from(this.roles.keys()).map(roleName => this.startRole(roleName)));
     }
 
     /**
@@ -143,26 +150,4 @@ class RoleManager {
 
 }
 
-//module.exports = RoleManager;
-
-
-const roleManager = new RoleManager([
-    { name: 'local', socketPath: '/var/run/docker.sock' },
-    { name: 'nas', host: 'nas.lan', port: 2375 }
-]);
-
-// List all backends
-const backends = roleManager.listBackends();
-console.log('Available backends:', backends);
-
-// Add a role
-//roleManager.addRole('minio-s3', '/path/to/minio/docker-compose', 'local');
-
-// Start the role on the local backend
-//roleManager.startRole('minio-s3', 'local');
-
-// List containers on the NAS
-(async () => {
-    const list = await roleManager.listContainers('local')
-    console.log(list)
-})()
+module.exports = RoleManager;

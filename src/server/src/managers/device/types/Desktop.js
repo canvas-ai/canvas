@@ -2,7 +2,7 @@
 
 
 // Utils
-const { machineId, machineIdSync } = require('node-machine-id');
+const { machineIdSync } = require('node-machine-id');
 const os = require('os');
 const ip = require('ip');
 
