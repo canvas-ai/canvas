@@ -10,16 +10,17 @@
 <h1 align="center">Canvas</h1>
 <h2 align="center">Contextualize your unstructured universe!</h2>
 
-<br />
-
 ## Foreword / Beware!
 
-This project was started a long^looong time ago (originally named "Workspaces") and was my first-ever Node.js + Electron endeavour. Some code snippets you may stumble upon date back to the dark ages of my JS knowledge hence may insult, even hurt more experienced programmers. In addition, 2020 to 2022 I took on a role as a freelance DevOps engineer for a major retail bank, which meant putting everything else besides the bare necessities on hold(people who suffered through a multimillion $$$ project behind schedule in this industry may know and most probably still vividly recall the pain). That being said, if you have any questions or need assistance with the setup, please do not hesitate to contact me directly. I will be more than happy to help! For the time being, please follow the development branch.
+This project was started a long^looong time ago (originally named "Workspaces") and was my first-ever Node.js + Electron endeavour. **Some code snippets you may stumble upon date back to the dark ages of my JS knowledge hence may insult, even hurt more experienced programmers**. In addition, 2020 to 2022 I took on a role as a freelance DevOps engineer for a major retail bank, which meant putting everything else besides the bare necessities on hold(people who suffered through a multimillion $$$ project behind schedule in this industry may know and most probably still vividly recall the pain). That being said, if you have any questions or need assistance with the setup, please do not hesitate to contact me directly. I will be more than happy to help! For the time being, please follow the development branch.
 
 ## Note
 
 - More information about the dev progress at [https://github.com/orgs/canvas-ai/projects/2](https://github.com/orgs/canvas-ai/projects/2)
-- Project (this particular repo) is ~~using~~ ** no longer using  git subtrees**, ignore the below and check out canvas-server, canvas-cli, canvas-electron
+- Project (this particular repo) ~~is using~~ **is no longer using  git subtrees**, ignore the below and check out
+  - [canvas-server](https://github.com/canvas-ai/canvas-server)
+  - [canvas-cli](https://github.com/canvas-ai/canvas-cli)
+  - [canvas-electron](https://github.com/canvas-ai/canvas-server)
 
 **To run this project without a GUI (server+cli+browser)**
 
@@ -178,7 +179,6 @@ There are 5 layer types:
   - client/network/172.16.2.0%24
 - This is very useful for calculating optimal routes for resources - Retrieving `file123.mp3` while sitting at home may use your home NAS as the primary backend, but use your s3 backend as default while on mobile network sitting on a train on your way to work for example
 
-
 ## Why Canvas you ask
 
 There are couple of motivating factors for this project:
@@ -192,8 +192,6 @@ There are couple of motivating factors for this project:
 - Pin devices to specific workspaces or contexts(fe my work nb to universe://work)
 - Have a workforce of personal Canvas-integrated AI assistants(agents) that would keep track and monitor various contexts(tasks), notify me and do basic tasks autonomously
 - Enable easy integration with other non-context-aware applications(kde/plasma activities were close but not close enough)
-
-<br />
 
 ## Architecture
 
@@ -211,9 +209,6 @@ Client repositories:
 
 Client runtime [on a linux OS] ensures all configured apps(flatpak), local roles(docker/podman), utils(stored), dotfiles(git) and data(stored) are available on your host system for the context you are currently working in. You can pin a canvas client to a specific workspace(context), for example say your work notebook to `universe://work` and your htpc to `universe://home/living-room`, both with its own (sub-)set of apps, roles, utils, dotfiles and data visibility limited to the pinned context subtree.
 
-
-
-
 Some of the technologies used in no particular order:
 
 - [Roaring bitmaps](https://roaringbitmap.org/)
@@ -228,8 +223,6 @@ Some of the technologies used in no particular order:
 - [lancedb](https://github.com/lancedb/lancedb)
 
 
-<br />
-
 ## Installation instructions
 
 ### Bash client
@@ -240,7 +233,6 @@ Some of the technologies used in no particular order:
 
 - https://github.com/canvas-ai/canvas-browser-extensions
 
-
 ### Portable installation
 
 For **portable** use, download and extract nodejs and electron into the canvas/runtime folder
@@ -248,8 +240,6 @@ For **portable** use, download and extract nodejs and electron into the canvas/r
 - Symlink electron-vNN-linux-x64 to electron-linux-x64
 - Symlink node-vNN-linux-x64 to node-linux-x64
 - Remove user/.ignore
-
-<br />
 
 ## Configuration paths
 
@@ -275,7 +265,6 @@ YT Channel + Some (royalty-free) music used in my videos
 - https://www.youtube.com/@idnc.streams
 - https://soundcloud.com/idnc-sk/sets
 
-
 <br />
 
 ## Support this project
@@ -291,11 +280,10 @@ YT Channel + Some (royalty-free) music used in my videos
 
 Thank you!
 
-
 ## Refs
 
-https://github.com/sindresorhus/awesome-electron
-https://onaircode.com/css-material-design-frameworks/
-https://mdbootstrap.com/docs/standard/components
-https://mui.com/material-ui/
+- https://github.com/sindresorhus/awesome-electron
+- https://onaircode.com/css-material-design-frameworks/
+- https://mdbootstrap.com/docs/standard/components
+- https://mui.com/material-ui/
 
