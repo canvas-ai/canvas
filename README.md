@@ -19,7 +19,7 @@ This project was started a long^looong time ago (originally named "Workspaces") 
 ## Note
 
 - More information about the dev progress at [https://github.com/orgs/canvas-ai/projects/2](https://github.com/orgs/canvas-ai/projects/2)
-- Project (this particular repo) is using **git subtrees**, ensure you run `./scripts/update-subtrees.sh` before running it
+- Project (this particular repo) is ~~using~~ ** no longer using  git subtrees**, ignore the below and check out canvas-server, canvas-cli, canvas-electron
 
 **To run this project without a GUI (server+cli+browser)**
 
