@@ -12,64 +12,17 @@
 
 ## Foreword / Beware!
 
-This project was started a long^looong time ago (originally named "Workspaces") and was my first-ever Node.js + Electron endeavour. **Some code snippets you may stumble upon date back to the dark ages of my JS knowledge hence may insult, even hurt more experienced programmers**. In addition, 2020 to 2022 I took on a role as a freelance DevOps engineer for a major retail bank, which meant putting everything else besides the bare necessities on hold(people who suffered through a multimillion $$$ project behind schedule in this industry may know and most probably still vividly recall the pain). That being said, if you have any questions or need assistance with the setup, please do not hesitate to contact me directly. I will be more than happy to help! For the time being, please follow the development branch.
+This project was started a long^looong time ago (originally named "Workspaces") and was my first-ever Node.js + Electron endeavour. **Some code snippets you may stumble upon date back to the dark ages of my JS knowledge hence may insult, even hurt more experienced programmers**. In addition, 2020 to 2022 I took on a role as a freelance DevOps engineer for a major retail bank, which meant putting everything else besides the bare necessities on hold(people who suffered through a multimillion $$$ project behind schedule in this industry may know and most probably still vividly recall the pain). That being said, if you have any questions or need assistance with the setup, please do not hesitate to contact me directly. I will be more than happy to help!
 
 ## Note
 
 - More information about the dev progress at [https://github.com/orgs/canvas-ai/projects/2](https://github.com/orgs/canvas-ai/projects/2)
-- Project (this particular repo) ~~is using~~ **is no longer using  git subtrees**, ignore the below and check out
+- Project (this particular repo) ~~is using~~ **is no longer using  git subtrees**, for more details checkout
   - [canvas-server](https://github.com/canvas-ai/canvas-server)
   - [canvas-cli](https://github.com/canvas-ai/canvas-cli)
   - [canvas-electron](https://github.com/canvas-ai/canvas-server)
+  - [canvas-browser-extensions](https://github.com/canvas-ai/canvas-browser-extensions)
 
-**To run this project without a GUI (server+cli+browser)**
-
-```bash
-# Canvas Server
-git clone https://github.com/canvas-ai/canvas-server.git /path/to/canvas-server
-cd /path/to/canvas-server
-# Run locally
-# You can install dependencies automatically via ./scripts/install-ubuntu.sh
-npm install # or yarn install
-npm run start # or yarn start
-# Run in docker
-docker-compose build --force-rm --no-cache --pull
-docker-compose up --detach
-
-# Canvas cli client
-git clone https://github.com/canvas-ai/canvas-shell.git /path/to/canvas-shell
-# Create configuration dir
-mkdir -p ~/.canvas/config
-echo '{
-    "protocol": "http",
-    "host": "127.0.0.1",
-    "port": "8000",
-    "baseUrl": "/rest/v1",
-    "auth": {
-        "token": "canvas-rest-api"
-    }
-}' > ~/.canvas/config/transport.rest.json
-echo ". /path/to/canvas-shell/context.sh" >> ~/.bashrc
-bash
-context connect # or context disconnect or canvas_connect or canvas_disconnect
-
-# Browser extension
-git clone https://github.com/canvas-ai/canvas-browser-extensions.git /path/to/canvas-extensions/browser
-cd /path/to/canvas-extensions/browser
-yarn install
-yarn dev
-# Chrome
-# Manage extensions > Developer mode > Load unpacked > Navigate to packages
-# > Select chromium > profit!
-
-# Firefox
-# about:debugging#/runtime/this-firefox
-# > Load temporary addon
-# > Navigate to packages
-
-# Make sure you pin both to your taskbar
-
-```
 
 ## Basic Concepts | What is Canvas
 
@@ -77,7 +30,7 @@ Canvas is a cross-platform desktop overlay to help organize work / workflows, ev
 
 Contexts are represented by a tree structure resembling a file-system hierarchy; every tree node represents a separate layer filtering down all unstructured information fighting for your attention on a standard(tm) desktop setup(emails, notifications, chat messages, growing number of random browser tabs and ad-hoc download-extract-test-forget endeavors).
 
-A Canvas context tree is designed to be dynamic, supporting frequent changes to accommodate any structure needed to be productive:
+A Canvas context tree is designed to be dynamic, supporting frequent changes to accommodate any structure needed to be productive; example context tree:
 
 ```plain
 universe://
@@ -90,7 +43,7 @@ universe://
             /Physics
             /Math
             /Medicine
-        /Our new house
+        /New house
             /Heating
             /Electricity
             /Kitchen
@@ -110,7 +63,7 @@ universe://
         /AirBnB
             /Atlas Apartment
             /Fountainhead Apartment
-        /Cu$tomer A
+        /Cu$tomerA
                 /Dev
                     /JIRA-1234
                     /JIRA-1237
@@ -121,7 +74,6 @@ universe://
         /SaaS Startup FOO
             /DC Frankfurt
                 /network
-                /hv
         /Billing
             /acme llc
                 /2022
@@ -149,7 +101,7 @@ For the above example, all contexts return (among other data) the same file `IMG
 
 There are 5 layer types:
 
-- **Workspace**: Exportable, **shareable** collection of data sources and layers. By default, you start with an undifferentiated "universe". Workspaces in Canvas can have a primary color assigned. If they do, Canvas will automatically use gradients [of the primary workspace color] for individual data abstractions.
+- **Workspace**: Exportable, **shareable** collection of data sources and layers. By default, you start with an undifferentiated "universe". Workspaces in Canvas can have a primary color assigned. If they do, Canvas UI will automatically use gradients [of the primary workspace color] for individual data abstractions.
 
 - **Canvas**: A layer with multiple context, feature and/or filter bitmaps assigned that can optionally store Canvas UI layout and UI applet data. Canvases are the central piece of a lets say unorthodox approach to desktop environments, but more on that later.
 
@@ -159,26 +111,6 @@ There are 5 layer types:
 
 - **Label**: A noop layer with no context or feature bitmap links
 
-**Sessions**
-
-- Each session has its own context(one) and a single control interface - meaning - switching your context on a work-phone will automatically switch context on all devices connected to the same session(your work PC for example)
-- Sessions are decoupled from workspaces
-
-**Workspaces**
-
-- `universe://foo/bar/baz` - Base URL **/**, (default) "universe" session
-- `work://work` - Session "work" with a base URL set to **/work** (navigation/data only from the /work subtree)
-- `dxc://work/dxc` - Session "DXC" with a base URL set to **/work/dxc** (navigation/data only from the /work/customerA subtree)
-
-**Contexts**
-
-- A client application can (optionally) submit a client context in the context array, some example contexts are
-  - client/os/linux,
-  - client/user/user1,
-  - client/app/obsidian,
-  - client/network/172.16.2.0%24
-- This is very useful for calculating optimal routes for resources - Retrieving `file123.mp3` while sitting at home may use your home NAS as the primary backend, but use your s3 backend as default while on mobile network sitting on a train on your way to work for example
-
 ## Why Canvas you ask
 
 There are couple of motivating factors for this project:
@@ -186,11 +118,11 @@ There are couple of motivating factors for this project:
 - I never really liked the "desktop" UI/UX, stacked nor tiled, and now [due to more mature libraries, better tooling in general, AI] it is finally feasible to experiment on my own implementation without burning 1/4 of an average human lifespan while doing so
 - I never liked the rigidness of a flat, "static" file system hierarchy, always wanted to have dynamic "views" on top of my data without unwanted duplication or too much manual effort(this dates back to 2007? at that time I found out msft once worked on a similar - fs as a db - concept)
 - I kept collecting \_RESTORE\_ and \_TO\_SORT\_ folders within other random \_TO\_SORT\_ folders, had data on a growing number of USB sticks, memory cards, \<random cloud provider\> instances and computers at work and in our household. I want to know where my rare-studio-recording-2008.mp3 is located("asus mp3 player", smb://nas.lan/some/random/folder, file://deviceid/foo/bar/baz/Downloads, timecapsule gps coordinates :)
-- I want to have a working "roaming profile" experience across all my devices running linux and windows. On linux, ideally container-based applications I can freeze on logout/undock and unfreeze on a different linux machine(main motivation behind my iolinux distro experiment ~2017-2018)
+- I want to have a working "roaming profile" experience across all my devices. On linux, ideally container-based applications I can freeze on logout/undock and unfreeze on a different linux machine(main motivation behind my iolinux distro experiment ~2017-2018)
 - I want to easily discover peers, share files and collaborate on documents hosted publicly or on my own infrastructure
 - I want to use all my computing devices seamlessly; export an application menu, toolbox or applet(music player of my HiFi-connected pc) to my phone or tablet, have my Canvas timeline on my phone so that whenever I search for some emails or notes, I can easily use swipe and zoom gestures to zoom into the time-frame of interest and filter out data I work on on my main workstation
 - Pin devices to specific workspaces or contexts(fe my work nb to universe://work)
-- Have a workforce of personal Canvas-integrated AI assistants(agents) that would keep track and monitor various contexts(tasks), notify me and do basic tasks autonomously
+- Have a workforce of personal Canvas-integrated context-aware, portable(as in, workstation->nb->phone->car->workstation) AI assistants that would keep track and monitor various tasks, notify me and work on basic tasks autonomously(not really an innovative idea, we'll see how the actually important realization part turns out!)
 - Enable easy integration with other non-context-aware applications(kde/plasma activities were close but not close enough)
 
 ## Architecture
@@ -205,6 +137,7 @@ Manages your entire (not exclusively digital) universe. Server hosts your global
 Client repositories:
 - https://github.com/canvas-ai/canvas-electron (default desktop client)
 - https://github.com/canvas-ai/canvas-shell
+- https://github.com/canvas-ai/canvas-cli
 - https://github.com/canvas-ai/canvas-browser-extensions
 
 Client runtime [on a linux OS] ensures all configured apps(flatpak), local roles(docker/podman), utils(stored), dotfiles(git) and data(stored) are available on your host system for the context you are currently working in. You can pin a canvas client to a specific workspace(context), for example say your work notebook to `universe://work` and your htpc to `universe://home/living-room`, both with its own (sub-)set of apps, roles, utils, dotfiles and data visibility limited to the pinned context subtree.
@@ -222,41 +155,6 @@ Some of the technologies used in no particular order:
 - [electron](https://www.electronjs.org/) - Well ..it should be easy enough to migrate to a more lightweight solution later on
 - [lancedb](https://github.com/lancedb/lancedb)
 
-
-## Installation instructions
-
-### Bash client
-
-- https://github.com/canvas-ai/canvas-shell
-
-### Firefox extension
-
-- https://github.com/canvas-ai/canvas-browser-extensions
-
-### Portable installation
-
-For **portable** use, download and extract nodejs and electron into the canvas/runtime folder
-
-- Symlink electron-vNN-linux-x64 to electron-linux-x64
-- Symlink node-vNN-linux-x64 to node-linux-x64
-- Remove user/.ignore
-
-## Configuration paths
-
-Default user home for portable use: `canvas/user`
-Default user home: `$HOME/.canvas`
-
-Environment variables:
-
-- CANVAS_USER_HOME
-- CANVAS_USER_CACHE: Remnant from my custom linux distro times ([iolinux](https://iolinux.org) - a portable containerized "roaming" iolinux user env that you'd "dock" to a iolinux host system with an (optional) per-user zfs data-set for cache)
-- CANVAS_USER_CONFIG
-- CANVAS_USER_DATA
-- CANVAS_USER_DB
-- CANVAS_USER_VAR
-- NODE_ENV
-- LOG_LEVEL
-
 ## Social
 
 I'm trying to motivate myself to do daily code updates by doing not-yet-but-soon-to-be live coding sessions(~~usually ~5AM - 6AM CEST~~). Wouldn't watch any of the existing videos _yet_, mostly OBS audio tests and a showcase of sleep deprivation, but you can subscribe for updates nevertheless.
@@ -271,7 +169,6 @@ YT Channel + Some (royalty-free) music used in my videos
 
 - **By contributing to the codebase**
 - **By testing the application and reporting bugs**
-- By subscribing to the YT channel above (motivation++)
 - By sponsoring some quality coffee via
   - <https://opencollective.com/idncsk>
   - <https://www.buymeacoffee.com/idncsk>
@@ -279,11 +176,3 @@ YT Channel + Some (royalty-free) music used in my videos
 **Any suggestions welcome** ("you should use \<module\> to do \<stuff\> instead of \<whatever nightmare you have currently implemented\>"), as a hobby-programmer this is really appreciated!
 
 Thank you!
-
-## Refs
-
-- https://github.com/sindresorhus/awesome-electron
-- https://onaircode.com/css-material-design-frameworks/
-- https://mdbootstrap.com/docs/standard/components
-- https://mui.com/material-ui/
-
